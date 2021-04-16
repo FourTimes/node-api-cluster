@@ -3,6 +3,8 @@ const cluster = require("cluster");
 const http = require("http");
 const numCPUs = require("os").cpus().length;
 
+const bodyParser = require("body-parser");
+
 if (cluster.isMaster) {
   console.log(`Master ${process.pid} is running`);
   for (let i = 0; i < numCPUs; i++) {
@@ -15,11 +17,10 @@ if (cluster.isMaster) {
   });
 } else {
   const app = express();
+  app.use(bodyParser.json());
+  const index = require("./routes/index")
 
-  app.get("/", (req, res) => res.send("Hello World! " + cluster.worker.id));
-  app.get("/data", (req, res) =>
-    res.send("Data api server " + cluster.worker.id)
-  );
+  app.use("/", index)
 
   http.createServer(app).listen(3000, function () {
     console.log(
